@@ -6,7 +6,7 @@ export default async function ModuleLayout({
   children,
   params,
 }: {
-  children: React.Node;
+  children: React.ReactNode;
   params: Promise<{ moduleId: string }>;
 }) {
   const { moduleId } = await params;

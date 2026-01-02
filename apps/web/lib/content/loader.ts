@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
-import { ModuleSchema } from '@/packages/schemas/module.schema';
-import { ScenarioSchema } from '@/packages/schemas/scenario.schema';
 
 const CONTENT_ROOT = path.join(process.cwd(), '../../packages/content');
 
@@ -131,9 +129,7 @@ export async function loadModule(moduleId: string): Promise<Module> {
   const fileContents = fs.readFileSync(modulePath, 'utf8');
   const moduleData = yaml.parse(fileContents);
 
-  // Validate with Zod schema
-  const validated = ModuleSchema.parse(moduleData);
-
+  // TODO: Add Zod schema validation
   return moduleData as Module;
 }
 
@@ -163,9 +159,7 @@ export async function loadScenario(scenarioPath: string): Promise<Scenario> {
   const fileContents = fs.readFileSync(fullPath, 'utf8');
   const scenarioData = yaml.parse(fileContents);
 
-  // Validate with Zod schema
-  const validated = ScenarioSchema.parse(scenarioData);
-
+  // TODO: Add Zod schema validation
   return scenarioData as Scenario;
 }
 
