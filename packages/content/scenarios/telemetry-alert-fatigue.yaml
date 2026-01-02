@@ -1,0 +1,190 @@
+id: telemetry-alert-fatigue
+type: performance-degradation
+context: |
+  You're the SRE lead for a SaaS platform serving 12,000 enterprise customers. Your
+  monitoring infrastructure generates 847,000 metric data points per minute across:
+  - 340 microservices
+  - 1,200 Kubernetes pods (across 4 regions)
+  - 28 databases (PostgreSQL, Redis, Elasticsearch)
+  - 15 third-party API integrations
+
+  Current alert situation (7:23 AM on Monday):
+  - Slack #incidents channel: 127 unread alerts (last 45 minutes)
+  - PagerDuty: 43 open incidents (severity mixed)
+  - Datadog: 298 monitors in alert state
+  - Grafana: 18 dashboard annotations showing anomalies
+
+  Your on-call team is overwhelmed:
+  - 3 engineers actively investigating
+  - 8 duplicate alerts for same root cause
+  - 15 false positives (known noisy alerts)
+  - Average time to acknowledge: 12 minutes (SLA: < 2 minutes)
+
+  Signal-to-noise ratio: Estimated 18% actionable signals
+
+  Real issues buried in the noise:
+  - API gateway p99 latency: 4.2s (normally 180ms) - CRITICAL
+  - Database connection pool: 92% utilization - WARNING
+  - Elasticsearch cluster health: yellow (1 node down) - MINOR
+
+challenge: |
+  Your AIOps vendor (Moogsoft) proposes implementing AI-powered alert correlation
+  and noise reduction. Their analysis shows they can:
+  - Reduce alerts by 73% through deduplication and correlation
+  - Group related alerts into 12 incident clusters
+  - Predict alert patterns to suppress known transients
+  - Auto-close alerts that resolve within 90 seconds
+
+  However, the implementation requires:
+  - 2-week baseline learning period (passive mode)
+  - Confidence threshold tuning (risk of suppressing real incidents)
+  - Team training on new incident workflows
+  - $48K annual licensing cost
+
+  Your VP of Engineering is skeptical of "AI magic" and suggests instead:
+  - Manually tuning existing alert thresholds (1 week effort, 2 engineers)
+  - Implementing stricter alert routing rules
+  - Requiring teams to clean up their own noisy monitors
+
+  What is your recommendation?
+
+maestroPillar:
+  - sense
+  - understand
+  - learn
+
+choices:
+  - choiceId: implement-ai-correlation
+    action: Deploy Moogsoft AI-powered alert correlation
+    description: |
+      Proceed with AI-based noise reduction. Accept the 2-week learning period and
+      $48K cost. Commit to team training and workflow changes. Trust the 73% reduction
+      projection based on vendor's analysis of your telemetry patterns.
+    consequence: |
+      Week 1-2: Passive learning mode - alerts continue at current volume, but AI
+      builds correlation models. Week 3: Activate noise reduction at 60% confidence
+      threshold. Alert volume drops 68% (close to projection). Incident clusters
+      reduce from 298 alerts to 19 meaningful incidents. The buried API gateway
+      issue is surfaced immediately (previously hidden in noise). MTTR for real
+      incidents drops from 23 minutes to 8 minutes. False positive rate: 4% (12 real
+      alerts incorrectly suppressed in month 1, caught by secondary monitoring).
+
+      6-month results: 81% alert reduction, $380K saved in engineering time (ROI: 7.9x),
+      SLA acknowledgment time: 1.2 minutes (improved from 12 minutes).
+    impact:
+      mttr: "-65%"
+      risk: low
+      slaImpact: "Significant improvement - 1.2min avg acknowledgment"
+      revenueImpact: "$0 - No customer impact, improved operational efficiency"
+    isOptimal: true
+    reasoning: |
+      Alert fatigue is a well-documented operational anti-pattern that degrades
+      incident response effectiveness. Manual threshold tuning doesn't address the
+      fundamental problem: correlation and context analysis at scale exceed human
+      capacity. The 73% reduction projection aligns with industry benchmarks for
+      AI-driven alert correlation (typical: 60-80%). The $48K cost is negligible
+      compared to engineering time waste (847K alerts/month × 30 seconds avg
+      investigation = 7,058 hours/month wasted). The 4% false suppression rate in
+      month 1 is acceptable given secondary monitoring coverage and the 2-week
+      baseline learning minimizes risk.
+
+  - choiceId: manual-threshold-tuning
+    action: Reject AI - Manually tune alert thresholds
+    description: |
+      Assign 2 engineers for 1 week to audit all 298 monitors, adjust thresholds,
+      and implement stricter routing rules. Require service teams to justify each
+      alert's business criticality. No additional tooling costs.
+    consequence: |
+      Week 1: Engineers audit monitors, identify 47 duplicates and 23 known noisy
+      alerts for deletion. Alert volume reduces 19% to 241 active monitors. However,
+      the remaining alerts still lack correlation - 8 alerts for same root cause
+      still fire independently. MTTR improves marginally to 19 minutes (from 23).
+
+      Week 4: Alert volume creeps back up as new services deploy with default
+      monitoring configurations. Back to 280 monitors within 1 month. The API gateway
+      latency issue remains buried - detected 8 minutes slower than AI correlation
+      would have surfaced it. Engineers spend 40% of on-call time investigating
+      false positives. Team morale declines due to continued alert fatigue.
+
+      Cost: $0 tooling, but 2 engineer-weeks + ongoing maintenance burden.
+    impact:
+      mttr: "-17%"
+      risk: medium
+      slaImpact: "Marginal improvement - 10min avg acknowledgment"
+      revenueImpact: "$0 - But continued operational inefficiency"
+    isOptimal: false
+    reasoning: |
+      Manual tuning addresses symptoms, not root cause. The fundamental issue is
+      correlation and context analysis at 847K data points/minute - a scale problem
+      that manual processes cannot solve sustainably. The 19% alert reduction is
+      linear (delete obvious duplicates), not exponential (correlation-based
+      deduplication). Alert volume entropy (gradual increase over time) is inevitable
+      without automated governance. The approach also doesn't capture dynamic
+      patterns (weekday vs weekend baselines, seasonal traffic) that AI learns
+      automatically. While avoiding $48K cost seems prudent, the opportunity cost
+      (wasted engineering time, slower incident response) far exceeds the savings.
+
+  - choiceId: hybrid-approach
+    action: Hybrid - Manual cleanup first, then AI for persistent noise
+    description: |
+      Compromise approach: Spend 1 week doing manual cleanup to remove obvious
+      duplicates and tune critical thresholds, then implement AI correlation only
+      for the remaining persistent noise. Delay AI deployment by 1 month.
+    consequence: |
+      Week 1: Manual cleanup reduces alerts 19% (same as option 2). Week 5: Deploy
+      AI correlation on reduced alert set. Learning period still requires 2 weeks.
+      AI achieves 61% additional reduction (vs 73% on full set). Net result: 68%
+      total reduction (19% manual + 61% of remaining 81%).
+
+      However, the 1-month delay means the API gateway issue remains buried for 4
+      additional weeks, causing cumulative $47K in SLA penalties due to degraded
+      customer experience. MTTR improves to 9 minutes (vs 8 with immediate AI).
+
+      Cost: 2 engineer-weeks + $48K + $47K SLA penalties = Higher total cost than
+      immediate AI deployment.
+    impact:
+      mttr: "-61%"
+      risk: medium
+      slaImpact: "Delayed improvement - SLA breach during transition"
+      revenueImpact: "$47K in SLA penalties during 4-week delay"
+    isOptimal: false
+    reasoning: |
+      Hybrid approaches sound reasonable but often introduce worst-of-both-worlds
+      dynamics. The manual cleanup doesn't reduce the AI learning period (still 2
+      weeks), so you've spent 3 weeks total for marginal additional benefit (68%
+      vs 73%). The delay cost ($47K SLA penalties) exceeds the AI licensing cost
+      ($48K), making this economically inferior to immediate deployment. The approach
+      also creates change management overhead: two distinct workflow transitions
+      instead of one. In operational scenarios with clear vendor validation (Moogsoft
+      analyzed YOUR data, not generic projections), front-loading automation
+      typically outperforms incremental adoption.
+
+correctiveInsight: |
+  This scenario demonstrates **signal-to-noise degradation** in modern observability
+  and the limits of manual correlation at scale.
+
+  Key lessons:
+  1. **Alert volume is not a vanity metric** - More alerts ≠ better observability.
+     Quality (actionable signals) > Quantity (raw data points)
+  2. **Correlation is a computational problem, not a process problem** - At 847K
+     metrics/minute, pattern detection requires machine learning, not spreadsheets
+  3. **Alert fatigue is a safety hazard** - Overwhelmed on-call teams miss critical
+     signals (API gateway buried in noise). This creates availability risk
+  4. **Cost of inaction > cost of tooling** - $48K AI license vs $380K wasted
+     engineering time is a 7.9x ROI. Operational efficiency unlocks innovation capacity
+  5. **Baseline learning periods are features, not bugs** - 2 weeks of passive
+     monitoring builds confidence and reduces false suppression risk
+
+  The VP's skepticism of "AI magic" reflects a common bias: over-weighting visible
+  costs (licensing) and under-weighting invisible costs (wasted time, delayed
+  incident response, team burnout). Data-driven ROI analysis should override
+  intuition in tool selection decisions.
+
+contemplate: |
+  Reflect on your observability strategy:
+  - What is your current signal-to-noise ratio? (How many alerts are actionable?)
+  - How do you measure the cost of alert fatigue? (Engineer time, MTTR, morale)
+  - What threshold of confidence would you require for automated alert suppression?
+  - How would you validate vendor claims before committing to AI correlation tools?
+  - What cultural changes are needed to trust automation over manual investigation?
+  - How do you prevent alert volume entropy (gradual increase over time)?
