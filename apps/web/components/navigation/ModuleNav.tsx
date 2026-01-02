@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import {
   BookOpen,
   Target,
-  Image,
+  Image as ImageIcon,
   ClipboardCheck,
   CheckCircle2,
   Circle,
@@ -171,7 +171,7 @@ export function ModuleNav({
         {/* Infographics */}
         <div>
           <div className="flex items-center gap-2 mb-3 px-2">
-            <Image className="w-4 h-4 text-accent-neon-cyan" />
+            <ImageIcon className="w-4 h-4 text-accent-neon-cyan" aria-hidden="true" />
             <h3 className="text-sm font-semibold text-accent-neon-cyan uppercase">
               Infographics ({infographics.length})
             </h3>

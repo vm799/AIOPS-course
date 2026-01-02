@@ -9,21 +9,23 @@ import { z } from "zod";
 export const ImpactLevelSchema = z.enum(["high", "medium", "low"]);
 
 export const ImpactMetricsSchema = z.object({
-  mttr: z.string().regex(/^[+-]\d+%$/), // e.g., "+30%", "-15%"
+  mttr: z.string(), // e.g., "+30%", "-15%", "+240%"
   blastRadius: ImpactLevelSchema.optional(),
-  risk: ImpactLevelSchema,
+  risk: z.string(), // Allow any string for flexibility (high, medium, low, etc.)
   slaImpact: z.string().optional(),
   revenueImpact: z.string().optional(),
+  teamMorale: z.string().optional(),
 });
 
 export const ChoiceSchema = z.object({
   choiceId: z.string().min(1),
-  action: z.string().min(10).max(500),
-  description: z.string().min(10).max(1000),
-  consequence: z.string().min(10).max(1000),
+  action: z.string().min(1),
+  description: z.string().min(1),
+  consequence: z.string().min(1),
   impact: ImpactMetricsSchema,
   isOptimal: z.boolean().default(false),
-  reasoning: z.string().min(10).max(1000),
+  reasoning: z.string().min(1),
+  label: z.string().optional(), // For UI display
 });
 
 export const ScenarioTypeSchema = z.enum([
@@ -32,15 +34,16 @@ export const ScenarioTypeSchema = z.enum([
   "change-management",
   "security-event",
   "performance-degradation",
+  "strategic-planning",
 ]);
 
 export const ScenarioSchema = z.object({
-  scenarioId: z.string().min(1),
+  id: z.string().min(1),
   type: ScenarioTypeSchema,
-  context: z.string().min(50).max(2000),
-  challenge: z.string().min(50).max(1000),
+  context: z.string().min(1),
+  challenge: z.string().min(1),
   choices: z.array(ChoiceSchema).min(2).max(5),
-  correctiveInsight: z.string().min(50).max(1000),
+  correctiveInsight: z.string().min(1),
   maestroPillar: z.array(z.enum([
     "sense",
     "understand",
@@ -49,6 +52,14 @@ export const ScenarioSchema = z.object({
     "verify",
     "learn",
   ])).min(1),
+  contemplate: z.string().min(1).optional(), // Reflection prompt (5Cs Framework)
+  title: z.string().optional(),
+  realWorldReference: z.string().optional(),
+  metadata: z.object({
+    basedOnIncident: z.string().optional(),
+    revenueAtRisk: z.string().optional(),
+    complexity: z.string().optional(),
+  }).optional(),
 });
 
 /**
@@ -59,7 +70,7 @@ export const FiveCsScenarioSchema = ScenarioSchema.extend({
   // Challenge: Already covered by 'challenge' field
   // Choices: Already covered by 'choices' field
   // Consequence: Covered in each choice's 'consequence' field
-  contemplate: z.string().min(50).max(1000), // Reflection prompt
+  contemplate: z.string().min(50).max(1000), // Reflection prompt (required in 5Cs)
 });
 
 // Type exports

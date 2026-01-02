@@ -106,7 +106,14 @@ jobs:
         run: |
           echo "Validating AI-generated content..."
           # Check SVG files for security issues
-          find packages/content/infographics -name "*.svg" -exec grep -l "<script" {} \; && exit 1 || echo "No script tags found in SVGs"
+          OUTPUT=$(find packages/content/infographics -name "*.svg" -exec grep -l "<script" {} \; 2>&1)
+          if [ -n "$OUTPUT" ]; then
+            echo "❌ Found script tags in SVG files:"
+            echo "$OUTPUT"
+            exit 1
+          else
+            echo "✅ No script tags found in SVGs"
+          fi
 
       - name: Check for dummy data
         run: |

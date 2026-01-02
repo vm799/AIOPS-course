@@ -71,7 +71,8 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
             return !inline ? (
               <div className="my-4 rounded-lg overflow-hidden border border-accent-neon-cyan/20">
                 <SyntaxHighlighter
-                  style={vscDarkPlus}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  style={vscDarkPlus as any}
                   language={language}
                   PreTag="div"
                   customStyle={{
