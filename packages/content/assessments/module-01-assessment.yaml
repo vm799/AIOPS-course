@@ -1,0 +1,249 @@
+assessmentId: module-01-assessment
+moduleId: module-01
+title: "Module 1 Assessment: Intelligent Observability Foundations"
+passingScore: 80
+timeLimit: 45
+questions:
+  - questionId: q1-maestro-pillar-identification
+    type: multiple-choice
+    scenario: |
+      Your monitoring system detects that p95 API latency increased from 240ms to 1,200ms at 14:12.
+      You examine logs and find database connection pool exhaustion errors starting at 14:08.
+      Metrics show memory usage began trending upward at 14:03, correlated with a canary deployment at 14:00.
+
+      You use AI correlation to link these signals and identify a connection leak (89% confidence).
+      The system recommends rolling back the deployment.
+    question: |
+      Which Maestro pillar is primarily responsible for linking the memory metrics, connection pool errors,
+      and deployment event into a single root cause hypothesis?
+    points: 15
+    options:
+      - optionId: a
+        text: "SENSE - because it collected the telemetry data"
+        isCorrect: false
+        explanation: "SENSE collects raw data, but doesn't perform correlation or analysis."
+      - optionId: b
+        text: "UNDERSTAND - because it correlated signals and identified the root cause pattern"
+        isCorrect: true
+        explanation: "UNDERSTAND transforms raw telemetry into actionable insights through correlation, anomaly detection, and context enrichment. This pillar is responsible for linking related signals into a coherent root cause hypothesis."
+      - optionId: c
+        text: "DECIDE - because it recommended the rollback action"
+        isCorrect: false
+        explanation: "DECIDE evaluates remediation options, but UNDERSTAND is what performed the correlation to identify the root cause first."
+      - optionId: d
+        text: "VERIFY - because it validated the 89% confidence score"
+        isCorrect: false
+        explanation: "VERIFY validates outcomes after actions are taken, not during root cause analysis."
+
+  - questionId: q2-signal-to-noise-ratio
+    type: multiple-choice
+    scenario: |
+      Your operations team receives 298 alerts per day. After investigation, you find that only 54 of these
+      alerts lead to actual incidents requiring engineer action. The rest are false positives, duplicate alerts,
+      or transient spikes that self-resolve.
+
+      Engineers spend an average of 5 minutes investigating each false positive.
+    question: |
+      What is your current signal-to-noise ratio (SNR), and what is the approximate annual cost of
+      false positive investigation time? (Assume $150K/year engineer salary, 260 working days)
+    points: 15
+    options:
+      - optionId: a
+        text: "SNR: 22%, Annual cost: ~$280K"
+        isCorrect: false
+        explanation: "Calculation error. SNR is correct (54/298 = 18.1%), but cost calculation is off."
+      - optionId: b
+        text: "SNR: 18%, Annual cost: ~$556K"
+        isCorrect: true
+        explanation: "Correct. SNR = 54/298 = 18.1%. False positives = 244/day. Time waste = 244 × 5min = 1,220min/day = 20.3 hours/day. Annual cost = 20.3 × 260 days × $75/hour = $555,975."
+      - optionId: c
+        text: "SNR: 54%, Annual cost: ~$120K"
+        isCorrect: false
+        explanation: "SNR calculation is reversed (you used actionable/total, not signal/noise). Cost is also underestimated."
+      - optionId: d
+        text: "SNR: 82%, Annual cost: ~$45K"
+        isCorrect: false
+        explanation: "Both calculations are incorrect. SNR should be actionable alerts divided by total alerts."
+
+  - questionId: q3-correlation-vs-causation
+    type: multiple-choice
+    scenario: |
+      During incident investigation, you observe:
+      - CPU usage correlates with error rate (r = 0.82)
+      - High CPU events occur at 14:05:00
+      - First error logged at 14:12:00
+      - Memory usage began increasing at 14:03:00
+      - Deployment occurred at 14:00:00
+    question: |
+      A junior engineer concludes: "High CPU causes errors because they're strongly correlated."
+      What is the PRIMARY problem with this conclusion?
+    points: 15
+    options:
+      - optionId: a
+        text: "Correlation coefficient is too low (should be r > 0.90 for causation)"
+        isCorrect: false
+        explanation: "Correlation strength doesn't prove causation. Even r=0.99 could be spurious correlation without temporal precedence and mechanism."
+      - optionId: b
+        text: "Temporal ordering is violated - CPU spike occurs BEFORE errors, but errors can't cause past events"
+        isCorrect: false
+        explanation: "Actually, temporal ordering suggests CPU might cause errors (CPU precedes errors). The real issue is that both might be symptoms of a deeper cause."
+      - optionId: c
+        text: "Reverse causation - errors likely cause CPU spikes, not the other way around"
+        isCorrect: false
+        explanation: "Timeline shows CPU spikes (14:05) occur before errors (14:12), so reverse causation is unlikely."
+      - optionId: d
+        text: "Confounding variable - both CPU and errors are likely symptoms of the memory leak (common cause)"
+        isCorrect: true
+        explanation: "Correct. Memory increase (14:03) precedes both CPU (14:05) and errors (14:12). The causal chain is: Memory leak → GC frequency → CPU spikes → Connection pool exhaustion → Errors. CPU and errors are correlated because they share a common upstream cause."
+
+  - questionId: q4-automation-level-decision
+    type: multiple-choice
+    scenario: |
+      Your AIOps platform detects potential database connection pool exhaustion and recommends
+      restarting 8 database pods. Analysis shows:
+      - Confidence: 68%
+      - Blast radius: 12% of traffic (2.4M requests/hour)
+      - Revenue at risk: $127K/minute
+      - Predicted time to failure: 11 minutes
+      - Action is reversible (rollback in <2 minutes if needed)
+    question: |
+      According to the Maestro framework's automation levels and governance principles,
+      what is the MOST appropriate action?
+    points: 15
+    options:
+      - optionId: a
+        text: "L4 Full Automation - automatically restart pods and notify on-call engineer"
+        isCorrect: false
+        explanation: "68% confidence is below the typical L4 threshold (85%+). High revenue risk makes human validation prudent."
+      - optionId: b
+        text: "L3 Supervised Automation - execute restart automatically but require human approval first"
+        isCorrect: true
+        explanation: "Correct. 68% confidence is medium (60-85% range). High revenue impact ($127K/min) justifies human validation despite time pressure. The action is reversible, making supervised automation appropriate rather than full automation or manual-only."
+      - optionId: c
+        text: "L1 Assisted - alert engineer with recommendation, but require manual execution"
+        isCorrect: false
+        explanation: "Too conservative given 11-minute window and high revenue risk. Supervised automation (pre-approved action) is faster while maintaining governance."
+      - optionId: d
+        text: "L0 Manual - escalate to database team for manual investigation and decision"
+        isCorrect: false
+        explanation: "Too slow given 11-minute window to failure. Manual investigation would likely exceed available time."
+
+  - questionId: q5-rca-framework-application
+    type: multiple-choice
+    scenario: |
+      API p95 latency spiked from 340ms to 1,200ms at 14:12. Investigation reveals:
+
+      Timeline:
+      - 14:00 - Deployment started (canary 20%)
+      - 14:03 - Cache hit rate drops from 94% to 61%
+      - 14:08 - Database CPU increases from 65% to 78%
+      - 14:12 - API latency spike begins
+      - 14:15 - Error rate increases from 0.4% to 3.2%
+
+      Code review finds: New feature queries cache with user_id instead of session_id (typo).
+    question: |
+      Following the RCA framework, what is the root cause and what evidence confirms it?
+    points: 20
+    options:
+      - optionId: a
+        text: "Root cause: Database CPU spike. Evidence: CPU increase (14:08) precedes latency spike (14:12)."
+        isCorrect: false
+        explanation: "DB CPU is an intermediate symptom, not root cause. Cache misses (14:03) precede DB CPU, suggesting the cache issue is upstream."
+      - optionId: b
+        text: "Root cause: Deployment. Evidence: Deployment (14:00) precedes all symptoms."
+        isCorrect: false
+        explanation: "Deployment is the triggering event, but not the specific root cause. The actual bug (wrong cache key) is the root cause."
+      - optionId: c
+        text: "Root cause: Code bug (wrong cache key). Evidence: Temporal precedence (cache misses first), mechanism (misses → DB load → latency), code review confirmation."
+        isCorrect: true
+        explanation: "Correct. This follows the full RCA framework: (1) Timeline establishes cache misses occur first (14:03), (2) Correlation links cache → DB → latency, (3) Mechanism explains how wrong key causes cascade, (4) Code review validates hypothesis, (5) Confounders ruled out (traffic stable, no infrastructure issues)."
+      - optionId: d
+        text: "Root cause: Cache invalidation. Evidence: Cache hit rate drop from 94% to 61%."
+        isCorrect: false
+        explanation: "Cache hit rate drop is a symptom, not the cause. The code review revealed the mechanism: wrong cache key (user_id vs session_id) causes constant misses."
+
+  - questionId: q6-observability-vs-monitoring
+    type: multiple-choice
+    scenario: |
+      Your current monitoring setup:
+      - Static threshold alerts (CPU > 80%, Memory > 90%, Latency > 500ms)
+      - Pre-built dashboards for CPU, memory, disk, network
+      - Alert fires when latency exceeds 500ms
+      - Investigation process: Check dashboards, grep logs manually
+      - Average MTTR: 45 minutes
+
+      You're considering upgrading to full observability.
+    question: |
+      Which capability would MOST distinguish observability from monitoring in this scenario?
+    points: 10
+    options:
+      - optionId: a
+        text: "Ability to set dynamic thresholds that adapt to time-of-day patterns"
+        isCorrect: false
+        explanation: "Dynamic thresholds improve alerting quality but can still exist in a monitoring paradigm. This is an incremental improvement, not the core distinguisher."
+      - optionId: b
+        text: "Ability to query arbitrary dimensions you didn't pre-aggregate (e.g., 'show requests > 400ms for premium users from mobile app')"
+        isCorrect: true
+        explanation: "Correct. This is the essence of observability: exploring unknown unknowns through high-cardinality data. Monitoring requires pre-built dashboards for known metrics; observability allows ad-hoc queries on dimensions not anticipated during instrumentation."
+      - optionId: c
+        text: "Distributed tracing to follow requests across microservices"
+        isCorrect: false
+        explanation: "Tracing is one of the three pillars and enables observability, but it's not the defining characteristic. The key is the ability to ask arbitrary questions, which tracing supports but doesn't solely provide."
+      - optionId: d
+        text: "Real-time alerts instead of 5-minute polling intervals"
+        isCorrect: false
+        explanation: "Real-time alerting is a performance improvement to monitoring, not a shift to observability. Observability is about explorability and unknown unknowns, not just speed."
+
+  - questionId: q7-three-pillars-integration
+    type: multiple-choice
+    scenario: |
+      You're investigating a checkout failure. You have:
+
+      METRICS: Error rate 5.2% (normally 0.4%) on /checkout endpoint
+      LOGS: "PaymentGatewayTimeout: Request exceeded 5000ms" (47 occurrences)
+      TRACES: Missing - tracing not implemented for payment service
+
+      An engineer suggests: "We have metrics and logs. Traces are optional."
+    question: |
+      What critical capability are you missing WITHOUT distributed tracing?
+    points: 10
+    options:
+      - optionId: a
+        text: "Ability to measure error rates and latency"
+        isCorrect: false
+        explanation: "Metrics already provide error rates and latency measurements. Tracing adds request-level context, not aggregate measurements."
+      - optionId: b
+        text: "Ability to see error messages and stack traces"
+        isCorrect: false
+        explanation: "Logs provide error messages. Traces complement logs with request flow context but don't replace them."
+      - optionId: c
+        text: "Ability to attribute latency to specific service calls in the request path and identify where the 5000ms timeout occurs"
+        isCorrect: true
+        explanation: "Correct. Traces show request flow across services and latency attribution. Without traces, you know there's a timeout but not whether it's: (1) Payment gateway actually slow, (2) Network latency to gateway, (3) Auth service upstream delaying the request, or (4) Database query before payment call. Traces decompose end-to-end latency into service-level spans."
+      - optionId: d
+        text: "Ability to correlate metrics and logs using trace_id"
+        isCorrect: false
+        explanation: "This is a benefit of having traces, but the critical missing capability is latency attribution across the distributed request path. Correlation is valuable but not the primary gap."
+
+metadata:
+  difficulty: intermediate
+  estimatedTime: 45
+  topics:
+    - maestro-framework
+    - signal-to-noise-ratio
+    - causal-inference
+    - automation-governance
+    - rca-framework
+    - observability-fundamentals
+    - three-pillars
+  passingCriteria:
+    minimumScore: 80
+    requiredQuestions: []
+  learningOutcomes:
+    - Apply Maestro pillars to real operational scenarios
+    - Calculate and interpret signal-to-noise ratios
+    - Distinguish correlation from causation in incident data
+    - Select appropriate automation levels based on confidence and risk
+    - Execute root cause analysis using the 5-step framework
+    - Differentiate observability from monitoring capabilities
+    - Understand the complementary nature of logs, metrics, and traces
