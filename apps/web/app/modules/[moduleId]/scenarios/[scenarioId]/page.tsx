@@ -10,10 +10,10 @@ export default async function ScenarioPage({
   const { moduleId, scenarioId } = await params;
 
   // Load module metadata
-  const module = await loadModule(moduleId);
+  const moduleData = await loadModule(moduleId);
 
   // Find the specific scenario
-  const scenarioMeta = module.scenarios.find((s) => s.id === scenarioId);
+  const scenarioMeta = moduleData.scenarios.find((s) => s.id === scenarioId);
   if (!scenarioMeta) {
     return (
       <div className="flex items-center justify-center h-full">

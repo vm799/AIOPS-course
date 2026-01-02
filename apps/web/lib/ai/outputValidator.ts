@@ -230,12 +230,22 @@ export function validateScenario(scenarioData: unknown): ValidationResult {
 }
 
 /**
+ * Options for text content validation
+ */
+interface TextContentOptions {
+  minWords?: number;
+  maxWords?: number;
+  requireSources?: boolean;
+  forbiddenPhrases?: string[];
+}
+
+/**
  * Validate any AI output based on type
  */
 export function validateAIOutput(
   type: "svg" | "text" | "scenario",
   output: unknown,
-  options?: any
+  options?: TextContentOptions
 ): ValidationResult {
   switch (type) {
     case "svg":

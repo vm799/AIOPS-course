@@ -68,12 +68,6 @@ export function ScenarioPlayer({ scenario, onComplete }: ScenarioPlayerProps) {
     }
   };
 
-  const getImpactIcon = (value: string) => {
-    if (value.includes('+')) return <TrendingUp className="w-4 h-4 text-red-400" />;
-    if (value.includes('-')) return <TrendingDown className="w-4 h-4 text-accent-neon-green" />;
-    return <AlertTriangle className="w-4 h-4 text-yellow-400" />;
-  };
-
   return (
     <div className="min-h-screen bg-background-primary p-8">
       <div className="max-w-5xl mx-auto">

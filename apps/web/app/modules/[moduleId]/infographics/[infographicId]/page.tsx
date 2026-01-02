@@ -9,10 +9,10 @@ export default async function InfographicPage({
   const { moduleId, infographicId } = await params;
 
   // Load module metadata
-  const module = await loadModule(moduleId);
+  const moduleData = await loadModule(moduleId);
 
   // Find the specific infographic
-  const infographicMeta = module.infographics.find((i) => i.id === infographicId);
+  const infographicMeta = moduleData.infographics.find((i) => i.id === infographicId);
   if (!infographicMeta) {
     return (
       <div className="flex items-center justify-center h-full">
