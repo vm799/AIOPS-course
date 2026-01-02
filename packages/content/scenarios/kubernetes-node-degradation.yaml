@@ -1,0 +1,188 @@
+id: kubernetes-node-degradation
+type: capacity-planning
+context: |
+  You manage a Kubernetes cluster running a real-time bidding (RTB) platform for
+  programmatic advertising. The platform processes 2.4 million bid requests per
+  second across a 120-node cluster (AWS EC2 m5.4xlarge instances).
+
+  Monday, 2:47 PM: Your observability system (Datadog + Prometheus) detects gradual
+  performance degradation on 8 nodes in availability zone us-east-1a:
+  - CPU steal time: Increasing from 0.3% to 4.7% (noisy neighbor on hypervisor)
+  - Network throughput: Degraded from 10 Gbps to 6.2 Gbps
+  - Disk I/O wait: Spiking to 18% (normally <2%)
+  - Pod eviction rate: 12 pods rescheduled in last 10 minutes
+
+  Impact on RTB latency (per-node):
+  - p50: 12ms → 23ms (acceptable: <50ms)
+  - p95: 47ms → 89ms (acceptable: <100ms)
+  - p99: 83ms → 147ms (EXCEEDS 120ms SLA)
+
+  Business context:
+  - RTB auctions timeout at 120ms (industry standard)
+  - Each 1ms latency increase = 0.3% bid loss rate
+  - Current degraded nodes handle 18% of total traffic
+  - Lost bids on these nodes: 2,400 bids/second = $14.40/second revenue ($51,840/hour)
+  - AWS auto-scaling: Enabled, but takes 8-12 minutes for new nodes
+
+  Your AIOps system (IBM Watson AIOps) detects the pattern and recommends:
+  - Probability of hypervisor issue: 87%
+  - Predicted impact: 15 more nodes affected within 20 minutes (cascading)
+  - Recommended action: Proactive node cordoning + pod migration NOW
+  - Confidence: 76%
+
+challenge: |
+  The AIOps system recommends immediate proactive migration: cordon the 8 affected
+  nodes, trigger pod rescheduling to healthy nodes, and request AWS node replacement.
+
+  However, this creates operational risk:
+  - Migration will cause brief traffic redistribution (2-3 second latency spike)
+  - Remaining 112 nodes will handle 18% more load during migration
+  - If AIOps prediction is WRONG (13% chance), you've disrupted for no reason
+  - AWS replacement nodes take 10 minutes to provision + 3 minutes pod scheduling
+
+  Alternative: "Wait and monitor" - AWS hypervisor issues often self-resolve within
+  15-20 minutes. Current degradation is technically within SLA at p95 (89ms < 100ms).
+  Only p99 is breached, affecting 1% of traffic.
+
+  What is your decision?
+
+maestroPillar:
+  - sense
+  - understand
+  - decide
+  - act
+
+choices:
+  - choiceId: proactive-migration
+    action: Trust AIOps - Execute immediate node cordoning and pod migration
+    description: |
+      Cordon the 8 degraded nodes immediately, triggering Kubernetes to reschedule
+      all 180 pods (8 nodes × ~22.5 pods/node) to healthy nodes. Accept the 2-3
+      second latency spike during migration. Request AWS node replacement in parallel.
+    consequence: |
+      Migration executes in 47 seconds. Brief latency spike: p95 reaches 340ms for
+      2.8 seconds (acceptable given proactive action). Pods redistribute to 112
+      healthy nodes. Latency returns to normal: p95=48ms, p99=84ms. Revenue loss
+      during migration: $40 (2.8 seconds × $14.40/sec).
+
+      Validation: 18 minutes later, 14 additional nodes in us-east-1a exhibit the
+      same degradation pattern (AIOps prediction was 93% accurate - 14 of 15 predicted).
+      Because you migrated proactively, these nodes were already at reduced capacity,
+      preventing cascade. Total incident cost: $40 + engineering time. No customer
+      complaints.
+    impact:
+      mttr: "-94%"
+      risk: low
+      slaImpact: "Prevented cascade - No SLA breach"
+      revenueImpact: "$40 total loss (migration spike) vs $51,840/hour avoided"
+    isOptimal: true
+    reasoning: |
+      The 76% confidence threshold combined with 87% hypervisor probability creates
+      a 66% joint probability of correct prediction (0.76 × 0.87 = 0.66). Given the
+      asymmetric risk (small migration cost vs massive cascade cost), proactive
+      action is justified even at 51% confidence. The $40 migration cost vs $51,840/hour
+      degradation loss is a 1,296:1 cost-benefit ratio. The AIOps system correctly
+      identified the cascading pattern signature (gradual degradation + AWS AZ
+      locality = hypervisor issue). Waiting would have validated the prediction too
+      late to prevent impact.
+
+  - choiceId: wait-and-monitor
+    action: Reject automation - Monitor for self-resolution
+    description: |
+      Maintain current state and monitor for 15-20 minutes. AWS hypervisor issues
+      often self-resolve without intervention. Only act if degradation worsens or
+      spreads to additional nodes. Preserve operational stability by avoiding
+      unnecessary pod churn.
+    consequence: |
+      15 minutes pass. Degradation worsens: p99 latency increases to 203ms (exceeds
+      120ms timeout threshold). Lost bids accumulate: $12,960 (15 min × $51,840/hour ÷ 60).
+      At minute 18, the cascade begins: 14 additional nodes degrade simultaneously.
+      Now 22 nodes (18% of cluster) are affected.
+
+      Emergency migration begins at minute 21 under duress. Migration takes 3 minutes
+      12 seconds (slower due to higher load). Latency spike during migration: p95=680ms
+      for 8 seconds. Customer complaints start flooding support. Total revenue loss:
+      $34,560 (40 minutes degraded + migration). Engineering team works until 11 PM
+      to stabilize. Post-incident review identifies waiting as the root cause of
+      extended impact.
+    impact:
+      mttr: "+2100%"
+      risk: high
+      slaImpact: "SLA breach - p99 exceeded for 40 minutes"
+      revenueImpact: "$34,560 revenue lost + customer complaints"
+    isOptimal: false
+    reasoning: |
+      "Wait and see" is risk-averse in the wrong direction: it minimizes intervention
+      risk but maximizes business impact risk. The decision implicitly assumes
+      self-resolution probability exceeds degradation probability, which contradicts
+      the AIOps 87% hypervisor issue detection. The cascade prediction (15 nodes
+      within 20 minutes) was empirically validated, meaning the wait cost $34,560.
+      This demonstrates anchoring bias: over-weighting recent experience (hypervisor
+      issues sometimes self-resolve) over data-driven prediction. Capacity planning
+      scenarios favor proactive intervention when prediction confidence exceeds 65%
+      and cost asymmetry is >10:1.
+
+  - choiceId: partial-mitigation
+    action: Hybrid - Cordon nodes but delay migration
+    description: |
+      Compromise: Cordon the 8 affected nodes to prevent new pod scheduling, but
+      don't force-migrate existing pods immediately. Let natural pod lifecycle
+      (restarts, updates) gradually move traffic away. Reduces migration impact
+      but maintains some protection.
+    consequence: |
+      Nodes cordoned at minute 2. Natural pod migration is slow: only 40 of 180
+      pods migrate in first 15 minutes (via routine restarts). Remaining 140 pods
+      continue running on degraded nodes. Latency continues degrading: p99=198ms
+      at minute 18.
+
+      Cascade begins as predicted. Now forced to emergency-migrate 140 remaining
+      pods under degraded conditions. Migration takes 4 minutes 18 seconds. Total
+      revenue loss: $18,720 (36 minutes partial degradation). Customer impact:
+      moderate complaints about intermittent slow responses.
+    impact:
+      mttr: "+900%"
+      risk: medium
+      slaImpact: "Partial SLA breach - p99 exceeded for 36 minutes"
+      revenueImpact: "$18,720 revenue lost (46% less than wait, but 468x worse than proactive)"
+    isOptimal: false
+    reasoning: |
+      Partial mitigation creates the illusion of action without meaningful risk
+      reduction. Cordoning prevents new pods but doesn't address existing pod
+      degradation - the actual revenue-impacting issue. Natural migration velocity
+      (40 pods / 15 min = 2.67 pods/min) is insufficient to prevent cascade impact
+      (cascade begins at minute 18). This approach delays decisive action, converting
+      a controlled 47-second migration into a 4-minute emergency migration under
+      worse conditions. Partial solutions in time-critical scenarios often combine
+      the costs of both inaction (delayed degradation) and action (eventual forced
+      migration), achieving worst-of-both-worlds outcomes.
+
+correctiveInsight: |
+  This scenario illustrates **proactive vs reactive incident management** and the
+  importance of trusting **predictive AIOps signals at sufficient confidence thresholds**.
+
+  Key lessons:
+  1. **Asymmetric risk justifies proactive action** - When intervention cost is
+     1/1000th of degradation cost ($40 vs $51K/hour), act at >50% confidence
+  2. **Cascade prevention is cheaper than cascade mitigation** - Proactive migration
+     ($40) vs emergency mitigation under duress ($18K-$34K)
+  3. **Confidence thresholds should be risk-adjusted** - 76% confidence is "low" for
+     diagnosis but "high" for proactive capacity planning given cost asymmetry
+  4. **Natural remediation is not a strategy** - Waiting for self-resolution without
+     mitigation is gambling with business outcomes
+  5. **Hypervisor degradation has locality signatures** - AWS AZ-level issues
+     (us-east-1a) indicate shared infrastructure failure, validating AIOps correlation
+
+  The 87% hypervisor probability combined with gradual multi-node degradation is a
+  high-confidence cascade signature. AIOps correctly identified the pattern 18
+  minutes before human operators would have detected the spread. This 18-minute
+  head start is the operational value of predictive observability.
+
+contemplate: |
+  Reflect on capacity planning and predictive action:
+  - What confidence threshold would you set for proactive node migration?
+  - How do you balance intervention risk vs degradation risk in capacity scenarios?
+  - What AWS/cloud infrastructure signals indicate hypervisor-level issues?
+  - How would you validate AIOps cascade predictions without waiting for cascade?
+  - What automated remediation would you implement for node degradation patterns?
+  - How do you prevent alert fatigue on low-confidence predictions while maintaining
+    readiness for high-confidence proactive actions?

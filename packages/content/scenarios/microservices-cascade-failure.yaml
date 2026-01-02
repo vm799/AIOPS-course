@@ -1,0 +1,152 @@
+id: microservices-cascade-failure
+type: incident-response
+context: |
+  You're managing a distributed e-commerce platform with 47 microservices during a
+  flash sale (12:00 PM EST). Your observability system shows a sudden spike in 503
+  errors originating from the product-catalog service, which handles 180K requests/minute.
+
+  Within 90 seconds, the failure cascades:
+  - Shopping cart service: latency increases from 85ms (p95) to 2.3s
+  - Recommendation engine: connection pool exhaustion (98% utilization)
+  - Payment gateway: timeout errors (15% of transactions)
+  - Search service: query queue backup (4,200 pending requests)
+
+  Critical context:
+  - Revenue at risk: $4.2M/hour during flash sale
+  - Current error budget: 12 minutes remaining (99.95% SLA)
+  - Circuit breakers: Configured but not yet triggered
+  - Auto-scaling: Enabled, but scaling takes 4-6 minutes
+  - Blast radius: 23 of 47 services affected
+
+  Your AIOps system (Dynatrace Davis AI) has identified the root cause:
+  - Product catalog database connection leak (thread pool exhaustion)
+  - Confidence: 89%
+  - Recommended action: Isolate catalog service + failover to read replica
+
+challenge: |
+  The AIOps system recommends immediate service isolation to prevent total platform
+  failure. However, isolating the product catalog will:
+  - Break product search (hard dependency)
+  - Disable personalized recommendations (soft dependency)
+  - Impact 40% of user journeys
+
+  Alternative: Manual intervention could fix the connection leak in 3-5 minutes, but
+  the cascade is accelerating. Your error budget will be exhausted in 8 minutes.
+
+  What is your decision?
+
+maestroPillar:
+  - sense
+  - understand
+  - decide
+  - act
+
+choices:
+  - choiceId: isolate-and-failover
+    action: Approve AIOps recommendation - Isolate catalog service immediately
+    description: |
+      Execute automated isolation: circuit breaker triggers for product-catalog service,
+      traffic fails over to read-replica database (eventual consistency, 30-second lag).
+      Search and recommendations will degrade gracefully with cached data.
+    consequence: |
+      Isolation completes in 12 seconds. Cascade stops. 23 services recover within
+      90 seconds. However, read-replica lag causes inconsistent product availability
+      during the flash sale. Customers see "sold out" for items still in stock,
+      leading to 18% cart abandonment rate (vs. normal 8%). Revenue impact: -$380K
+      during 45-minute degraded state. SLA preserved with 4 minutes of error budget remaining.
+    impact:
+      mttr: "+320%"
+      risk: medium
+      slaImpact: "No breach - 4 min error budget remaining"
+      revenueImpact: "$380K flash sale revenue lost due to stale data"
+    isOptimal: true
+    reasoning: |
+      While revenue impact is significant, preserving platform stability during a
+      cascade failure is the correct operational priority. The 89% confidence in root
+      cause justifies automated action. The alternative (manual fix) carries 67% risk
+      of total platform failure if the 3-5 minute estimate proves optimistic. Losing
+      $380K is preferable to potentially losing the entire $4.2M/hour flash sale revenue
+      plus long-term customer trust damage from a complete outage.
+
+  - choiceId: manual-intervention
+    action: Reject automation - Manually fix connection leak
+    description: |
+      Override AIOps and assign senior SRE team to manually diagnose and patch the
+      connection leak in the product catalog service. Estimated time: 3-5 minutes.
+      No service isolation, full functionality maintained during fix.
+    consequence: |
+      Manual fix takes 6 minutes (longer than estimated due to thread dump analysis).
+      During this time, the cascade accelerates. Payment gateway fails completely at
+      minute 4. Search service crashes at minute 5. Total platform outage occurs at
+      minute 5:47. Recovery takes additional 8 minutes. Total downtime: 13 minutes,
+      47 seconds. SLA breach triggers penalty clauses. Revenue lost: $960K. Customer
+      complaints spike 340%. Social media crisis (#FlashSaleDown trends).
+    impact:
+      mttr: "+1240%"
+      risk: high
+      slaImpact: "Critical SLA breach - 13m 47s downtime"
+      revenueImpact: "$960K revenue lost + SLA penalties + reputation damage"
+    isOptimal: false
+    reasoning: |
+      Manual intervention introduced human delay and estimation error. The AIOps
+      system's 89% confidence and 12-second automated isolation would have prevented
+      cascade completion. Trusting manual expertise over validated automation in a
+      time-critical scenario with high cascading risk is operationally unsound. The
+      decision prioritized maintaining feature completeness over system stability,
+      which violates fundamental SRE principles during incident response.
+
+  - choiceId: partial-isolation
+    action: Hybrid approach - Isolate payment gateway, manually fix catalog
+    description: |
+      Accept partial AIOps recommendation: isolate only the payment gateway (highest
+      business criticality) while manually fixing the catalog service. This preserves
+      search and recommendations but protects revenue-critical transactions.
+    consequence: |
+      Payment isolation succeeds, protecting transaction flow. However, catalog fix
+      still takes 5 minutes. During this time, search and recommendation services
+      continue to degrade, causing 28% of users to abandon before reaching checkout.
+      Those who reach checkout complete transactions successfully. Revenue impact:
+      -$520K (less than full isolation, but more user frustration). MTTR: 5 minutes.
+      SLA maintained with 1 minute error budget remaining. Customer satisfaction
+      scores drop 15% due to degraded search experience.
+    impact:
+      mttr: "+600%"
+      risk: medium
+      slaImpact: "No breach - 1 min error budget remaining"
+      revenueImpact: "$520K revenue lost + degraded user experience"
+    isOptimal: false
+    reasoning: |
+      While creative, this approach introduces unnecessary complexity during an
+      incident. Splitting attention between automated and manual remediation increases
+      cognitive load and coordination overhead. The marginal benefit ($520K vs $380K
+      loss) doesn't justify the added operational risk. The optimal choice (full
+      isolation) has clearer blast radius boundaries and faster resolution. Partial
+      solutions in distributed systems often create unpredictable failure modes.
+
+correctiveInsight: |
+  This scenario illustrates the **cascading failure pattern** in microservices
+  architectures and the critical importance of **circuit breaker automation**.
+
+  Key lessons:
+  1. **Trust high-confidence automation (>85%) during cascades** - Human intervention
+     adds latency that accelerates failures in time-critical scenarios
+  2. **Blast radius containment > feature preservation** - During cascades, stability
+     trumps functionality
+  3. **Circuit breakers must trigger automatically** - Manual approval loops defeat
+     their purpose in sub-minute cascade scenarios
+  4. **Eventual consistency is acceptable during incidents** - Stale data (read-replica lag)
+     is preferable to no data (total failure)
+  5. **SLA error budgets exist for incidents** - Consuming error budget to prevent
+     total failure is the correct trade-off
+
+  The 89% confidence threshold should trigger autonomous action. The AIOps system
+  correctly identified root cause and optimal remediation. Human override introduced
+  delay that worsened outcomes in 2 of 3 scenarios.
+
+contemplate: |
+  Reflect on cascade failure dynamics:
+  - What circuit breaker thresholds would you configure for your architecture?
+  - How do you balance automation autonomy vs. human oversight during cascades?
+  - What monitoring would detect connection leaks before thread pool exhaustion?
+  - How would you test cascade resilience without impacting production?
+  - What runbook would you create for microservices cascade scenarios?
