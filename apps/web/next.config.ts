@@ -2,9 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  experimental: {
-    typedRoutes: true,
-  },
+  typedRoutes: true,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -19,7 +17,6 @@ const nextConfig: NextConfig = {
     ],
   },
   // Optimize for Vercel deployment
-  swcMinify: true,
   poweredByHeader: false,
   compress: true,
   // Handle external packages

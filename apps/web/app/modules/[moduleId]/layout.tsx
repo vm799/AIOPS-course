@@ -6,21 +6,21 @@ export default async function ModuleLayout({
   children,
   params,
 }: {
-  children: React.Node;
+  children: React.ReactNode;
   params: Promise<{ moduleId: string }>;
 }) {
   const { moduleId } = await params;
-  const module = await loadModule(moduleId);
+  const moduleData = await loadModule(moduleId);
 
   return (
     <div className="flex h-screen bg-background-primary">
       <ModuleNav
-        moduleId={module.id}
-        moduleTitle={module.title}
-        lessons={module.lessons}
-        scenarios={module.scenarios}
-        infographics={module.infographics}
-        assessment={module.assessment}
+        moduleId={moduleData.id}
+        moduleTitle={moduleData.title}
+        lessons={moduleData.lessons}
+        scenarios={moduleData.scenarios}
+        infographics={moduleData.infographics}
+        assessment={moduleData.assessment}
       />
       <div className="flex-1 overflow-hidden">{children}</div>
     </div>

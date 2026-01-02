@@ -165,7 +165,6 @@ export function validatePromptOutput(
   promptId: string,
   output: string
 ): { valid: boolean; errors: string[] } {
-  const prompt = getPrompt(promptId);
   const errors: string[] = [];
 
   // Example validations (extend as needed)

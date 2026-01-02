@@ -10,10 +10,10 @@ export default async function LessonPage({
   const { moduleId, lessonId } = await params;
 
   // Load module metadata
-  const module = await loadModule(moduleId);
+  const moduleData = await loadModule(moduleId);
 
   // Find the specific lesson
-  const lessonIndex = module.lessons.findIndex((l) => l.id === lessonId);
+  const lessonIndex = moduleData.lessons.findIndex((l) => l.id === lessonId);
   if (lessonIndex === -1) {
     return (
       <div className="flex items-center justify-center h-full">
