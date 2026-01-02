@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
   Clock,
-  TrendingDown,
-  TrendingUp,
   Shield,
   DollarSign,
   Users,
