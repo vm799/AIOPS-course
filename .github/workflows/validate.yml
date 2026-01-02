@@ -1,0 +1,175 @@
+name: Content Validation & Quality Checks
+
+on:
+  push:
+    branches: [main, implementation, develop]
+  pull_request:
+    branches: [main, implementation]
+
+jobs:
+  validate-schemas:
+    name: Validate JSON Schemas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Validate module schemas
+        run: |
+          echo "Validating module YAML files..."
+          pnpm tsx scripts/validate-modules.ts
+
+      - name: Validate scenario schemas
+        run: |
+          echo "Validating scenario YAML files..."
+          pnpm tsx scripts/validate-scenarios.ts
+
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Run TypeScript type check
+        run: pnpm type-check
+
+  security-checks:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Security audit
+        run: pnpm audit --audit-level=moderate
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  ai-governance:
+    name: AI Governance Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify prompt registry
+        run: |
+          echo "Checking all AI prompts are registered..."
+          # Ensure no unregistered prompts in codebase
+          ! grep -r "claude\|gemini\|openai" apps/ packages/ --include="*.ts" --include="*.tsx" | grep -v "promptRegistry\|provider.ts\|test"
+
+      - name: Validate AI outputs
+        run: |
+          echo "Validating AI-generated content..."
+          # Check SVG files for security issues
+          find packages/content/infographics -name "*.svg" -exec grep -l "<script" {} \; && exit 1 || echo "No script tags found in SVGs"
+
+      - name: Check for dummy data
+        run: |
+          echo "Checking for forbidden dummy data..."
+          # Per PRD: no dummy data, mock systems, or fake metrics
+          ! grep -r "lorem ipsum\|example\.com\|test@test\|123-456-7890" packages/content/ || exit 1
+
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Next.js app
+        run: pnpm --filter @aiops-academy/web build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Run tests (when implemented)
+        run: |
+          echo "Tests will run here when implemented"
+          # pnpm test
+
+  content-quality:
+    name: Content Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check video durations
+        run: |
+          echo "Verifying video references don't exceed 6 minutes..."
+          # Per PRD: ≤6-minute video chunks
+          # This would check metadata when videos are uploaded
+
+      - name: Validate markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: "yes"
+          use-verbose-mode: "no"
+          config-file: ".github/markdown-link-check-config.json"
+
+      - name: Check for AI slop phrases
+        run: |
+          echo "Checking for forbidden AI-generated phrases..."
+          FORBIDDEN="as an AI|I cannot|I apologize|delve into|hope this helps"
+          ! grep -rE "$FORBIDDEN" packages/content/ || (echo "Found AI slop phrases" && exit 1)

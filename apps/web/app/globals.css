@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background-primary: #0B0F14;
+    --background-elevated: #111827;
+    --accent-primary: #3B82F6;
+    --accent-secondary: #22D3EE;
+    --text-primary: #E5E7EB;
+    --text-muted: #9CA3AF;
+  }
+
+  * {
+    @apply border-gray-800;
+  }
+
+  body {
+    @apply bg-background-primary text-text-primary antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar for dark mode */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background-primary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+}
+
+@layer components {
+  /* Purposeful animations only - max 240ms */
+  .animate-purposeful {
+    transition-duration: 240ms;
+    transition-timing-function: ease-out;
+  }
+
+  /* Premium glass effect for elevated surfaces */
+  .glass-effect {
+    @apply bg-background-elevated/80 backdrop-blur-sm border border-gray-800/50;
+  }
+}

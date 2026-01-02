@@ -1,0 +1,114 @@
+id: retail-memory-leak
+type: incident-response
+context: |
+  You are the on-call SRE for a high-traffic retail platform during peak trading hours
+  (Black Friday). Your AIOps system (Davis AI / Dynatrace) has detected a gradual memory
+  leak pattern in the checkout microservice. Current memory utilization is at 78% and
+  trending upward at 2% per minute. The predictive model estimates service failure in
+  11 minutes if the trend continues.
+
+  Critical context:
+  - 15,000 active shopping sessions
+  - Average transaction value: $127
+  - SLA: 99.9% uptime (< 8.64 seconds downtime/day)
+  - Last deployment: 3 hours ago (canary rollout, 20% traffic)
+challenge: |
+  Your AIOps system recommends automated remediation (rolling restart of affected pods).
+  However, the memory leak correlation with the recent deployment is only 68% confident.
+  The causal inference engine flags uncertainty due to incomplete telemetry from a
+  third-party payment gateway.
+
+  What is your decision?
+
+maestroPillar:
+  - sense
+  - understand
+  - decide
+  - verify
+
+choices:
+  - choiceId: auto-remediate
+    action: Approve automated rolling restart
+    description: |
+      Trust the AIOps recommendation and trigger the closed-loop remediation.
+      The system will perform a rolling restart of checkout pods with zero-downtime
+      deployment strategy.
+    consequence: |
+      The rolling restart completes in 4 minutes. Memory stabilizes at 45%. However,
+      post-incident analysis reveals the leak was actually in the payment gateway's
+      client SDK, not your code. The restart temporarily masked the symptom but didn't
+      fix the root cause. The leak recurs 2 hours later during another peak window,
+      requiring emergency vendor escalation.
+    impact:
+      mttr: "+240%"
+      risk: medium
+      slaImpact: "Avoided immediate breach, but recurrence caused 43-second outage later"
+      revenueImpact: "$127K transactions delayed in second incident"
+    isOptimal: false
+    reasoning: |
+      While the immediate symptom was addressed, the lack of causal certainty led to
+      treating symptoms rather than root cause. The 68% correlation should have triggered
+      human verification, especially given the third-party dependency uncertainty.
+
+  - choiceId: human-verify
+    action: Pause automation and validate causal chain
+    description: |
+      Reject the auto-remediation and initiate human-in-the-loop verification.
+      You will spend 3-5 minutes investigating the payment gateway telemetry gap
+      and validating the causal chain before deciding on remediation.
+    consequence: |
+      You discover the payment gateway SDK is leaking connections on retry attempts
+      (a known issue in version 2.3.1 that your team upgraded to yesterday). You
+      immediately roll back to SDK version 2.2.8 and notify the vendor. Memory
+      stabilizes without service restart. Root cause identified and resolved.
+    impact:
+      mttr: "+45%"
+      risk: low
+      slaImpact: "No breach - proactive resolution"
+      revenueImpact: "$0 - No transaction disruption"
+    isOptimal: true
+    reasoning: |
+      The 68% confidence threshold and telemetry gap justified human verification.
+      The additional 3-5 minutes of MTTR was acceptable trade-off for identifying
+      and resolving root cause, preventing recurrence and potential vendor-wide impact.
+
+  - choiceId: wait-and-see
+    action: Monitor without intervention
+    description: |
+      Reject automation and continue monitoring. Wait for more telemetry data to
+      improve causal confidence before taking action.
+    consequence: |
+      Memory reaches 94% in 8 minutes. Service degradation begins affecting checkout
+      latency (p95 latency increases from 320ms to 2.8 seconds). Customers begin
+      abandoning carts. You're forced into emergency manual restart under extreme
+      pressure, with incomplete root cause analysis.
+    impact:
+      mttr: "+680%"
+      risk: high
+      slaImpact: "SLA breach - 47 seconds of degraded service"
+      revenueImpact: "$340K in abandoned transactions"
+    isOptimal: false
+    reasoning: |
+      Inaction in a time-sensitive scenario with clear predictive signals is
+      negligent. While caution is appropriate, complete passivity ignores the
+      value of proactive AIOps insights and puts business impact ahead of
+      engineering curiosity.
+
+correctiveInsight: |
+  This scenario demonstrates the critical importance of **governance thresholds**
+  in agentic AIOps systems. The optimal approach is to:
+
+  1. Define confidence thresholds for autonomous action (e.g., >85% for auto-remediation)
+  2. Implement mandatory human-in-the-loop verification for edge cases (60-85% confidence)
+  3. Never ignore predictive signals - choose between action and verification, not inaction
+  4. Always investigate telemetry gaps before trusting automated causality
+
+  The 68% confidence level was a signal, not noise. Your AIOps system correctly
+  flagged uncertainty - the question is whether you respected that governance boundary.
+
+contemplate: |
+  Reflect on your decision:
+  - How did you weigh MTTR vs. root cause analysis?
+  - What confidence threshold would you set for your organization?
+  - How would you improve telemetry coverage for third-party dependencies?
+  - What governance policy would you implement for this scenario class?
