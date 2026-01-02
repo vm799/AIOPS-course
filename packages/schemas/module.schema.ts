@@ -62,7 +62,7 @@ export const LessonSchema = z.object({
   aiFeatures: AIFeaturesSchema.optional(),
 });
 
-export const ScenarioSchema = z.object({
+export const ScenarioReferenceSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   type: z.string().min(1),
@@ -109,7 +109,7 @@ export const ModuleSchema = z.object({
   difficulty: z.string().min(1).optional(),
   learning_objectives: z.array(LearningOutcomeSchema).min(1),
   lessons: z.array(LessonSchema).min(1),
-  scenarios: z.array(ScenarioSchema).optional(),
+  scenarios: z.array(ScenarioReferenceSchema).optional(),
   infographics: z.array(InfographicItemSchema).optional(),
   assessment: AssessmentItemSchema,
   prerequisites: z.array(z.string()),
@@ -149,7 +149,7 @@ export type LessonType = z.infer<typeof LessonTypeSchema>;
 export type AIFeatureModes = z.infer<typeof AIFeatureModesSchema>;
 export type AIFeatures = z.infer<typeof AIFeaturesSchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
-export type Scenario = z.infer<typeof ScenarioSchema>;
+export type ScenarioReference = z.infer<typeof ScenarioReferenceSchema>;
 export type InfographicItem = z.infer<typeof InfographicItemSchema>;
 export type AssessmentItem = z.infer<typeof AssessmentItemSchema>;
 export type Metadata = z.infer<typeof MetadataSchema>;
