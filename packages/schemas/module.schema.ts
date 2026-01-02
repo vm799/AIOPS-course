@@ -54,20 +54,67 @@ export const AIFeaturesSchema = z.object({
 });
 
 export const LessonSchema = z.object({
-  lessonId: z.string().min(1),
-  type: LessonTypeSchema,
-  durationMinutes: z.number().min(1).max(360),
-  contentRef: z.string().min(1),
+  id: z.string().min(1),
+  title: z.string().min(1),
+  duration: z.number().min(1).max(360),
+  path: z.string().min(1),
+  type: LessonTypeSchema.optional(),
   aiFeatures: AIFeaturesSchema.optional(),
 });
 
+export const ScenarioReferenceSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  type: z.string().min(1),
+  difficulty: z.string().min(1),
+  estimatedTime: z.number().min(1),
+  path: z.string().min(1),
+});
+
+export const InfographicItemSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().min(1),
+  path: z.string().min(1).endsWith(".svg"),
+});
+
+export const AssessmentItemSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  type: z.string().min(1),
+  path: z.string().min(1),
+  questionCount: z.number().min(1).optional(),
+  totalPoints: z.number().min(1).optional(),
+  passingScore: z.number().min(0).max(100),
+  estimatedTime: z.number().min(1).optional(),
+  topics: z.array(z.string()).optional(),
+});
+
+export const MetadataSchema = z.object({
+  created: z.string(),
+  version: z.string(),
+  status: z.string(),
+  contentQuality: z.string(),
+  realWorldData: z.boolean(),
+  aiSlop: z.boolean(),
+});
+
 export const ModuleSchema = z.object({
+  id: z.string().min(1),
   moduleId: z.string().min(1),
   title: z.string().min(1).max(200),
+  track: z.string().min(1),
   description: z.string().min(10).max(1000),
-  learningObjectives: z.array(LearningOutcomeSchema).min(1).max(5),
+  duration: z.number().min(1).optional(),
+  difficulty: z.string().min(1).optional(),
+  learning_objectives: z.array(LearningOutcomeSchema).min(1),
   lessons: z.array(LessonSchema).min(1),
-  assessment: AssessmentSchema,
+  scenarios: z.array(ScenarioReferenceSchema).optional(),
+  infographics: z.array(InfographicItemSchema).optional(),
+  assessment: AssessmentItemSchema,
+  prerequisites: z.array(z.string()),
+  nextModule: z.string().optional(),
+  metadata: MetadataSchema.optional(),
 });
 
 export const TrackSchema = z.enum(["practitioner", "architect", "executive"]);
@@ -102,6 +149,10 @@ export type LessonType = z.infer<typeof LessonTypeSchema>;
 export type AIFeatureModes = z.infer<typeof AIFeatureModesSchema>;
 export type AIFeatures = z.infer<typeof AIFeaturesSchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
+export type ScenarioReference = z.infer<typeof ScenarioReferenceSchema>;
+export type InfographicItem = z.infer<typeof InfographicItemSchema>;
+export type AssessmentItem = z.infer<typeof AssessmentItemSchema>;
+export type Metadata = z.infer<typeof MetadataSchema>;
 export type Module = z.infer<typeof ModuleSchema>;
 export type Track = z.infer<typeof TrackSchema>;
 export type Level = z.infer<typeof LevelSchema>;

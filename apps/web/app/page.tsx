@@ -1,5 +1,6 @@
 "use client";
 
+// AIOps Academy - Main Landing Page
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 
