@@ -131,7 +131,9 @@ export async function loadModule(moduleId: string): Promise<Module> {
   const fileContents = fs.readFileSync(modulePath, 'utf8');
   const moduleData = yaml.parse(fileContents);
 
-  // TODO: Add Zod schema validation after monorepo setup
+  // Validate with Zod schema
+  ModuleSchema.parse(moduleData);
+
   return moduleData as Module;
 }
 
@@ -161,7 +163,9 @@ export async function loadScenario(scenarioPath: string): Promise<Scenario> {
   const fileContents = fs.readFileSync(fullPath, 'utf8');
   const scenarioData = yaml.parse(fileContents);
 
-  // TODO: Add Zod schema validation after monorepo setup
+  // Validate with Zod schema
+  ScenarioSchema.parse(scenarioData);
+
   return scenarioData as Scenario;
 }
 

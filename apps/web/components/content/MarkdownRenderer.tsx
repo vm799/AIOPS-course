@@ -64,7 +64,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           ),
 
           // Code blocks
-          code({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & { inline?: boolean }) {
+          code({ inline, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : 'text';
 

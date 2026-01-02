@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  typedRoutes: false, // Disabled temporarily - causes type errors with dynamic Link hrefs
+  typedRoutes: true,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
