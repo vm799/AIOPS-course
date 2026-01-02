@@ -1,0 +1,24 @@
+id: intelligent-observability
+title: Intelligent Observability as a Control Plane
+track: practitioner
+description: |
+  Learn how to transform traditional monitoring into an intelligent observability
+  control plane that enables agentic decision-making and closed-loop remediation.
+learning_objectives:
+  - Explain the difference between telemetry chaos and intelligent observability
+  - Distinguish correlation from causation in operational data
+  - Design telemetry pipelines that reduce noise and surface actionable insights
+  - Implement human-in-the-loop validation for automated remediation decisions
+assets:
+  video: intelligent-observability-intro.mp4
+  pdf: observability-foundations.pdf
+infographics:
+  - causal-loop-diagram.svg
+  - maestro-sense-understand.svg
+scenarios:
+  - retail-memory-leak
+  - microservices-cascade-failure
+assessment:
+  type: scenario-decision
+  rubric: practitioner-v1
+  passingScore: 80

@@ -1,0 +1,31 @@
+{
+  "name": "@aiops-academy/monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agentic AIOps & Intelligent Observability Academy",
+  "author": "Vaishali Mehmi",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter @aiops-academy/web dev",
+    "build": "pnpm --filter @aiops-academy/web build",
+    "start": "pnpm --filter @aiops-academy/web start",
+    "lint": "pnpm --filter @aiops-academy/web lint",
+    "type-check": "pnpm -r type-check",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "validate:modules": "tsx scripts/validate-modules.ts",
+    "validate:scenarios": "tsx scripts/validate-scenarios.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
