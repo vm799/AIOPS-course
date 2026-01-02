@@ -18,6 +18,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Optimize for Vercel deployment
+  swcMinify: true,
+  poweredByHeader: false,
+  compress: true,
+  // Handle external packages
+  transpilePackages: ["@paper-design/shaders-react"],
+  // Ignore build errors for now (development phase)
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
 };
 
 export default nextConfig;
