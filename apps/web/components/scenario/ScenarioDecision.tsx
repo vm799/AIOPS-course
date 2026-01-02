@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, staggerItem, fadeInVariants } from "@/lib/design/motion";
-import type { Scenario, Choice } from "@aiops-academy/schemas";
+import type { Scenario } from "@/lib/content/loader";
 
 interface ScenarioDecisionProps {
   scenario: Scenario;
   onDecisionMade: (choiceId: string, timeToDecideSeconds: number) => void;
 }
+
+type Choice = Scenario['choices'][0];
 
 export function ScenarioDecision({ scenario, onDecisionMade }: ScenarioDecisionProps) {
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
@@ -126,7 +128,7 @@ export function ScenarioDecision({ scenario, onDecisionMade }: ScenarioDecisionP
                 <div className="pt-4 border-t border-gray-800">
                   <h4 className="font-semibold text-text-primary mb-2">Why this matters:</h4>
                   <p className="text-text-muted leading-relaxed whitespace-pre-line">
-                    {selectedChoiceData.reasoning}
+                    {selectedChoiceData.consequence}
                   </p>
                 </div>
               </div>
@@ -175,8 +177,7 @@ function ChoiceCard({ choice, index, isSelected, isDisabled, onSelect }: ChoiceC
           {String.fromCharCode(65 + index)}
         </div>
         <div className="flex-1 space-y-2">
-          <h4 className="font-semibold text-lg text-text-primary">{choice.action}</h4>
-          <p className="text-text-muted leading-relaxed">{choice.description}</p>
+          <h4 className="font-semibold text-lg text-text-primary">{choice.label}</h4>
         </div>
       </div>
     </motion.button>

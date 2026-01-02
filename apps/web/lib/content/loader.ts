@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
-import { ModuleSchema } from '@/packages/schemas/module.schema';
-import { ScenarioSchema } from '@/packages/schemas/scenario.schema';
+// TODO: Re-enable schema validation after configuring monorepo properly
+// Requires either: (1) Turborepo setup, (2) workspace dependencies, or (3) bundling packages/schemas into web app
 
 const CONTENT_ROOT = path.join(process.cwd(), '../../packages/content');
 
@@ -131,9 +131,7 @@ export async function loadModule(moduleId: string): Promise<Module> {
   const fileContents = fs.readFileSync(modulePath, 'utf8');
   const moduleData = yaml.parse(fileContents);
 
-  // Validate with Zod schema
-  ModuleSchema.parse(moduleData);
-
+  // TODO: Add Zod schema validation after monorepo setup
   return moduleData as Module;
 }
 
@@ -163,9 +161,7 @@ export async function loadScenario(scenarioPath: string): Promise<Scenario> {
   const fileContents = fs.readFileSync(fullPath, 'utf8');
   const scenarioData = yaml.parse(fileContents);
 
-  // Validate with Zod schema
-  ScenarioSchema.parse(scenarioData);
-
+  // TODO: Add Zod schema validation after monorepo setup
   return scenarioData as Scenario;
 }
 

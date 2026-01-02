@@ -29,10 +29,10 @@ export default async function LessonPage({
     );
   }
 
-  const lesson = module.lessons[lessonIndex];
+  const lesson = moduleData.lessons[lessonIndex];
   const lessonContent = await loadLesson(lesson.path);
 
-  const hasNext = lessonIndex < module.lessons.length - 1;
+  const hasNext = lessonIndex < moduleData.lessons.length - 1;
   const hasPrevious = lessonIndex > 0;
 
   return (
