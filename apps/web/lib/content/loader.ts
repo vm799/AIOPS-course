@@ -132,7 +132,7 @@ export async function loadModule(moduleId: string): Promise<Module> {
   const moduleData = yaml.parse(fileContents);
 
   // Validate with Zod schema
-  const validated = ModuleSchema.parse(moduleData);
+  ModuleSchema.parse(moduleData);
 
   return moduleData as Module;
 }
@@ -164,7 +164,7 @@ export async function loadScenario(scenarioPath: string): Promise<Scenario> {
   const scenarioData = yaml.parse(fileContents);
 
   // Validate with Zod schema
-  const validated = ScenarioSchema.parse(scenarioData);
+  ScenarioSchema.parse(scenarioData);
 
   return scenarioData as Scenario;
 }

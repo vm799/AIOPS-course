@@ -48,7 +48,7 @@ export class AIClient {
       promptId?: string; // For audit trail
     }
   ): Promise<AIResponse> {
-    const { provider, apiKey, model } = this.config;
+    const { provider } = this.config;
 
     // Log the request for governance
     this.logRequest(messages, options);
@@ -71,8 +71,8 @@ export class AIClient {
   }
 
   private async callClaude(
-    messages: AIMessage[],
-    options?: { temperature?: number; maxTokens?: number }
+    _messages: AIMessage[],
+    _options?: { temperature?: number; maxTokens?: number }
   ): Promise<AIResponse> {
     // Implementation would call Anthropic's API
     // For now, return a mock response
@@ -85,8 +85,8 @@ export class AIClient {
   }
 
   private async callGemini(
-    messages: AIMessage[],
-    options?: { temperature?: number; maxTokens?: number }
+    _messages: AIMessage[],
+    _options?: { temperature?: number; maxTokens?: number }
   ): Promise<AIResponse> {
     // Implementation would call Google's Gemini API
     return {
@@ -98,8 +98,8 @@ export class AIClient {
   }
 
   private async callOpenAI(
-    messages: AIMessage[],
-    options?: { temperature?: number; maxTokens?: number }
+    _messages: AIMessage[],
+    _options?: { temperature?: number; maxTokens?: number }
   ): Promise<AIResponse> {
     // Implementation would call OpenAI's API
     return {
@@ -113,7 +113,10 @@ export class AIClient {
   /**
    * Log AI request for governance and audit
    */
-  private logRequest(messages: AIMessage[], options?: any) {
+  private logRequest(
+    messages: AIMessage[],
+    options?: { promptId?: string }
+  ) {
     // In production, this would log to a secure audit system
     console.log("[AI Governance] Request logged:", {
       provider: this.config.provider,
